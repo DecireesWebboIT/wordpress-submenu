@@ -17,7 +17,9 @@ and we want to display only :
 * team
 * users
 * reviews
+
 or:
+
 * mail
 * phone
 * bird
