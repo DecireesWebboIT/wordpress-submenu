@@ -8,7 +8,7 @@ class submenu_one_level_walker extends Walker {
 
   public function start_el( &$output, $item, $depth = 0, $args = array(), $id = 0 ) {
 
-    //check if the parent id if the menu item is the same as the one given in parameter from the actual page
+    //check if the parent id of the menu item is the same as the one given in parameter from the actual page
     if($item->menu_item_parent == $this->parentid) {
 
       $indent = ($depth) ? str_repeat("\t", $depth) : '';
@@ -119,7 +119,9 @@ class submenu_one_level_walker extends Walker {
    * @param array  $args   An array of arguments. @see wp_nav_menu()
    */
   public function end_el( &$output, $item, $depth = 0, $args = array() ) {
-    $output .= "</li>\n";
+    if($item->menu_item_parent == $this->parentid) {
+      $output .= "</li>\n";
+    }
   }
 
   /**

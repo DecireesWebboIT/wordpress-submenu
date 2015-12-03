@@ -102,3 +102,28 @@ function get_actual_menu_item( $loc ) {
   }
   return $menuitem;
 }
+
+
+# filter_hook function to react on start_in argument
+function my_wp_nav_menu_objects_start_in( $sorted_menu_items, $args ) {
+  if(isset($args->start_in)) {
+    $menu_item_parents = array();
+    foreach( $sorted_menu_items as $key => $item ) {
+      // init menu_item_parents
+      if( $item->object_id == (int)$args->start_in ) $menu_item_parents[] = $item->ID;
+
+      if( in_array($item->menu_item_parent, $menu_item_parents) ) {
+        // part of sub-tree: keep!
+        $menu_item_parents[] = $item->ID;
+      } else {
+        // not part of sub-tree: away with it!
+        unset($sorted_menu_items[$key]);
+      }
+    }
+    return $sorted_menu_items;
+  } else {
+    return $sorted_menu_items;
+  }
+}
+# in functions.php add hook & hook function
+add_filter("wp_nav_menu_objects",'my_wp_nav_menu_objects_start_in',10,2);
