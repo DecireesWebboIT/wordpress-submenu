@@ -28,3 +28,29 @@ $walker = new submenuwalker(get_menu_parent($location, $display_depth)["id"]);
 wp_nav_menu(array('theme_location' => $location, 'container' => 'div', 'walker' => $walker));
 
 //end compact submenu
+
+//submenu 2.0 without submenuwalker
+        echo "normal:<br>";
+        wp_nav_menu(array(
+          'theme_location' => 'primary',
+          'sub_menu' => true
+        ));
+        echo "from second level to bottom<br>";
+        wp_nav_menu(array(
+          'theme_location' => 'primary',
+          'sub_menu' => true,
+          'sub_menu_from_second_level' => true,
+        ));
+        echo "only second level:<br>";
+        wp_nav_menu(array(
+          'theme_location' => 'primary',
+          'sub_menu' => true,
+          'sub_menu_only_second_level' => true,
+        ));
+        echo "only siblings:<br>";
+        wp_nav_menu(array(
+          'theme_location' => 'primary',
+          'sub_menu' => true,
+          'sub_menu_only_siblings' => true,
+        ));
+//end submenu 2.0 without submenuwalker

@@ -127,3 +127,113 @@ function my_wp_nav_menu_objects_start_in( $sorted_menu_items, $args ) {
 }
 # in functions.php add hook & hook function
 add_filter("wp_nav_menu_objects",'my_wp_nav_menu_objects_start_in',10,2);
+
+
+
+// ---------------------------------------Second version without subnemu walker----------------------------------------
+/**
+ * Display sub-menu on a separate block (actual item + parent)
+ * https://gist.github.com/aleksey-taranets/7144053
+ */
+
+// add hook
+add_filter('wp_nav_menu_objects', 'my_wp_nav_menu_objects_sub_menu', 10, 2);
+// filter_hook function to react on sub_menu flag
+function my_wp_nav_menu_objects_sub_menu($sorted_menu_items, $args)
+{
+
+  if (isset($args->sub_menu)) {
+    $root_id = 0;
+
+    // find the current menu item
+    foreach ($sorted_menu_items as $menu_item) {
+      if ($menu_item->current) {
+
+        // set the root id based on whether the current menu item has a parent or not
+        $root_id = ($menu_item->menu_item_parent) ? $menu_item->menu_item_parent : $menu_item->ID;
+        break;
+      }
+    }
+
+    //display only the second level
+    if (isset($args->sub_menu_only_second_level)) {
+      $prev_root_id = $root_id;
+      while ($prev_root_id != 0) {
+        foreach ($sorted_menu_items as $menu_item) {
+          if ($menu_item->ID == $prev_root_id) {
+            $prev_root_id = $menu_item->menu_item_parent;
+            // don't set the root_id to 0 if we've reached the top of the menu
+            if ($prev_root_id != 0) $root_id = $menu_item->menu_item_parent;
+            break;
+          }
+        }
+      }
+      $sorted_menu_items = this_branch($sorted_menu_items, $root_id);
+    }
+
+    // display the whole tree from second level
+    else if(isset($args->sub_menu_from_second_level)) {
+      $prev_root_id = $root_id;
+      while ($prev_root_id != 0) {
+        foreach ($sorted_menu_items as $menu_item) {
+          if ($menu_item->ID == $prev_root_id) {
+            $prev_root_id = $menu_item->menu_item_parent;
+            // don't set the root_id to 0 if we've reached the top of the menu
+            if ($prev_root_id != 0) $root_id = $menu_item->menu_item_parent;
+            break;
+          }
+        }
+      }
+      $sorted_menu_items = top_to_bottom_tree($sorted_menu_items, $root_id);
+    }
+
+    // display only siblings
+    else if(isset($args->sub_menu_only_siblings)) {
+      $sorted_menu_items = this_branch($sorted_menu_items, $root_id);
+    }
+
+    else{
+      $sorted_menu_items = top_to_bottom_tree($sorted_menu_items, $root_id);
+    }
+
+    return $sorted_menu_items;
+  } else {
+    return $sorted_menu_items;
+  }
+}
+
+function top_to_bottom_tree($sorted_menu_items, $root_id){
+  $menu_item_parents = array();
+  foreach ($sorted_menu_items as $key => $item) {
+    // init menu_item_parents
+    if ($item->ID == $root_id) $menu_item_parents[] = $item->ID;
+
+    if (in_array($item->menu_item_parent, $menu_item_parents)) {
+      // part of sub-tree: keep!
+      $menu_item_parents[] = $item->ID;
+    } else {
+      // not part of sub-tree: away with it!
+      unset($sorted_menu_items[$key]);
+    }
+  }
+  return $sorted_menu_items;
+}
+
+function this_branch($sorted_menu_items, $root_id){
+  foreach ($sorted_menu_items as $key => $item) {
+    // init menu_item_parents
+    if ($item->menu_item_parent != $root_id) {
+      unset($sorted_menu_items[$key]);
+
+    }
+  }
+  return $sorted_menu_items;
+}
+
+// FKN - function to display var_dump better
+function dump($string)
+{
+  echo("<pre>");
+  var_dump($string);
+  echo("</pre>");
+}
